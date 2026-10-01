@@ -53,7 +53,7 @@ function BackButton() {
 
 function App() {
   return (
-    <BrowserRouter basename={process.env.PUBLIC_URL.replace(/^https?:\/\/[^/]+/, '')}>
+    <BrowserRouter>
       <BackButton />
       <Routes>
         <Route path="/" element={<User />} />
