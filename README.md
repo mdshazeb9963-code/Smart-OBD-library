@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## GitHub Pages
 
-The app is hosted at https://mdshazeb9963-code.github.io/Smart-OBD-library/. Changes pushed to `main` are built and deployed by `.github/workflows/deploy.yml`.
+The app is hosted at https://mdshazeb9963-code.github.io/Smart-OBD-library/. Changes pushed to `pages-deploy` are built and deployed by `.github/workflows/deploy.yml`.
 
 GitHub Pages hosts the static frontend only. The deployed app uses browser storage; the optional Express/MySQL API in `server/` must be hosted separately before configuring `REACT_APP_API_URL`.
 
