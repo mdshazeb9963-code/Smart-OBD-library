@@ -1,111 +1,70 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { BrandHeader } from './layout';
 
 function User() {
   const navigate = useNavigate();
 
   return (
-    <div>
-      <nav
-       style={{
-         display: 'flex',
-         justifyContent: 'center',
-         alignItems: 'center',
-         color: '#F4EFC7',
-         fontSize: '29px',
-         fontWeight: 'bold',
-         fontFamily: 'Poppins, ',
-         backgroundColor: '#1321bef4',
-         padding: '19px',
-         borderRadius: '5px',
-         marginTop: '4px',
-         boxShadow: '0 4px 8px #0c0965f4',
-       }}
-      ><b>
-       🛠️ WELCOME TO SMART OBD SMART LIBRARY SCANNER⚙️
-       </b>
-      </nav>
-      <h2 align="center">Select Your user type</h2>
-      <p align="center">And login!  </p>
-      <br/>
-      <div 
-        style={{
-          backgroundColor: 'rgba(242, 246, 249, 0.92)',
-          padding: '75px',
-          borderRadius: '12px',
-          boxShadow: '0 8px 16px #205f7e',
-          width: '350px',
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: '19px',
-        }}
-      >
-        <button
-          onClick={() => navigate('/mechanic')}
-          style={{
-            padding: '15px 40px',
-            fontSize: '18px',
-            borderRadius: '8px',
-            border: 'none',
-            cursor: 'pointer',
-            backgroundColor: '#007bff', // blue
-            color: '#fff',
-            fontWeight: 'bold',
-            width: '50%',
-          }}
-        >
-          Mechanic
-        </button>
+    <div className="app-page landing-page">
+      <BrandHeader landing />
+      <main className="landing-content">
+        <section className="role-section" aria-labelledby="role-heading">
+          <div className="section-heading">
+            <div>
+              <p className="section-kicker">GET STARTED</p>
+              <h2 id="role-heading">Choose your workspace</h2>
+            </div>
+            <span className="section-sparkle" aria-hidden="true">✧</span>
+          </div>
 
-        <button
-          style={{
-            padding: '15px 40px',
-            fontSize: '18px',
-            borderRadius: '8px',
-            border: 'none',
-            cursor: 'pointer',
-            backgroundColor: '#3bd05e', // green
-            color: '#fff',
-            fontWeight: 'bold',
-            width: '50%',
-          }}
-        >
-          Customer
-        </button>
-        <sidebar
-          style={{
-            position: 'fixed',
-            top: '86px',
-            left: '0',
-            height: '100%',
-            width: '125px',
-            backgroundColor: '#f7f9fb',
-            color: '#191819',
-            padding: '20px',
-            boxShadow: '2px 0 5px #09a7c780',
-            fontFamily: 'Bebas Neue, sans-serif',
-          }}
-        >
-          <h2><i><u>MENU</u></i></h2>
-          <ul style={{ listStyleType: 'none', padding: '0' }}>
-            <li><a href="about.js" style={{ color: '#1495d5', textDecoration: 'underline' }}>About</a></li>
-            <li><a href="contact.js" style={{ color: '#1495d5', textDecoration: 'underline' }}>Contact</a></li>
-          </ul>
-        </sidebar>
-      </div>
-      <footer style={{ textAlign: 'center', marginTop:70, fontFamily: 'Arial Narrow, sans-serif' }}>
-        <p style={{ margin: '4px 0', fontWeight: 'bold' }}><i>SELECT THE RIGHT BUTTON</i></p>
-        <p style={{ margin: '4px 0', fontWeight: 'bold' }}><u>If you are a mechanic, click Mechanic</u></p>
-        <p style={{ margin: '4px 0', fontWeight: 'bold' }}><u>If you are a customer, press Customer to continue</u></p>
-      </footer>
-      <footer>
-      
-      </footer>
+          <div className="role-cards-frame">
+            <div className="role-grid">
+            <button className="role-card mechanic-card" onClick={() => navigate('/mechanic')}>
+              <span className="role-icon mechanic-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M14.7 6.3a5.1 5.1 0 0 0-6.5 6.5L3 18l3 3 5.2-5.2a5.1 5.1 0 0 0 6.5-6.5l-3 3-3-3 3-3Z" />
+                  <circle cx="6" cy="18" r=".8" />
+                </svg>
+              </span>
+              <span className="role-card-copy">
+                <span className="role-title">Mechanic</span>
+                <span className="role-description">Manage your workspace and browse the vehicle library.</span>
+                <span className="role-action">Continue as mechanic <span aria-hidden="true">→</span></span>
+              </span>
+            </button>
+
+            <button className="role-card customer-card" onClick={() => navigate('/customer')}>
+              <span className="role-icon customer-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="9" cy="7" r="3.2" />
+                  <path d="M3.5 19c0-3.1 2.2-5.2 5.5-5.2s5.5 2.1 5.5 5.2v1h-11v-1Z" />
+                  <path d="M17 8.5a2.4 2.4 0 1 0 0 4.8M18.3 16.2c1.4.3 2.2 1.3 2.2 2.8v1h-4" />
+                </svg>
+              </span>
+              <span className="role-card-copy">
+                <span className="role-title">Customer</span>
+                <span className="role-description">Get help with your vehicle from your workshop.</span>
+                <span className="role-action">Continue as customer <span aria-hidden="true">→</span></span>
+              </span>
+            </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="welcome-copy">
+          <h1>Smart Value</h1>
+          <p className="eyebrow">SMART VEHICLE SUPPORT</p>
+          <p className="page-description">
+            Find vehicle information and diagnostic references in one simple workspace.
+          </p>
+        </section>
+
+        <p className="landing-footnote">
+          Built for clear diagnostics and confident conversations.
+        </p>
+      </main>
     </div>
-    
   );
 }
 

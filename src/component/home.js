@@ -1,129 +1,300 @@
 import React from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { BrandHeader, MechanicSidebar } from './layout';
+import { createVehicle, getNextVehicleId, getVehicleList, loadNextVehicleId, loadVehicleList, removeVehicle, updateVehicle, VehiclePhoto } from './car';
+import { usesDatabaseApi } from './api';
 
 function Home() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [vehicles, setVehicles] = React.useState(usesDatabaseApi ? [] : getVehicleList);
+  const [nextVehicleId, setNextVehicleId] = React.useState(usesDatabaseApi ? '' : getNextVehicleId());
+  const [loadError, setLoadError] = React.useState('');
+  const [photo, setPhoto] = React.useState('');
+  const [photoError, setPhotoError] = React.useState('');
+  const [saveError, setSaveError] = React.useState('');
+  const [deleteError, setDeleteError] = React.useState('');
+  const [statusError, setStatusError] = React.useState('');
+  const uploadInputRef = React.useRef(null);
+  const cameraInputRef = React.useRef(null);
+  const isAddFormOpen = searchParams.get('add') === 'new';
+
+  React.useEffect(() => {
+    if (usesDatabaseApi) {
+      Promise.all([loadVehicleList(), loadNextVehicleId()])
+        .then(([loadedVehicles, nextId]) => {
+          setVehicles(loadedVehicles);
+          setNextVehicleId(nextId);
+          setLoadError('');
+        })
+        .catch(() => {
+          setLoadError('Workshop data could not be loaded. Check the database connection and try again.');
+        });
+    }
+  }, []);
+
+  const closeAddForm = () => {
+    setSearchParams({}, { replace: true });
+    setPhoto('');
+    setPhotoError('');
+    setSaveError('');
+  };
+
+  const handlePhotoChange = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Choose an image file for the vehicle photo.');
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      setPhotoError('Choose an image smaller than 1 MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') {
+        setPhotoError('The selected image could not be loaded. Please try another image.');
+        return;
+      }
+      setPhoto(reader.result);
+      setPhotoError('');
+    };
+    reader.onerror = () => {
+      setPhotoError('The selected image could not be loaded. Please try another image.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddVehicle = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = `Car ${nextVehicleId}`;
+
+    const vehicle = {
+      name,
+      year: String(new Date().getFullYear()),
+      status: 'Available',
+      code: name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase(),
+      license: formData.get('license').trim(),
+      customerName: formData.get('customerName').trim(),
+      phone: formData.get('phone').trim(),
+      odometer: 'Not provided',
+      fuel: 'Not provided',
+      image: photo,
+      amount: formData.get('amount'),
+    };
+
+    try {
+      const result = await createVehicle(vehicle);
+      if (Array.isArray(result)) {
+        setVehicles(result);
+      } else {
+        setVehicles((currentVehicles) => [...currentVehicles, result]);
+      }
+      closeAddForm();
+      loadNextVehicleId()
+        .then(setNextVehicleId)
+        .catch(() => setLoadError('The car was added, but the next car ID could not be loaded.'));
+    } catch (error) {
+      setSaveError(error.message || 'The vehicle could not be saved. Check the database connection and try again.');
+    }
+  };
+
+  const handleStatusChange = async (vehicle, status) => {
+    try {
+      const updatedVehicle = await updateVehicle(vehicle.id, { status });
+      setVehicles((currentVehicles) => currentVehicles.map((item) => (
+        String(item.id) === String(updatedVehicle.id) ? updatedVehicle : item
+      )));
+      setStatusError('');
+    } catch (error) {
+      setStatusError(error.message || 'The work status could not be updated. Please try again.');
+    }
+  };
+
+  const handleDeleteVehicle = async (vehicle) => {
+    if (!window.confirm(`Delete ${vehicle.name} (car ID ${vehicle.id})? It will be moved to History.`)) {
+      return;
+    }
+
+    try {
+      const result = await removeVehicle(vehicle.id);
+      if (Array.isArray(result)) {
+        setVehicles(result);
+      } else {
+        setVehicles((currentVehicles) => currentVehicles.filter((item) => String(item.id) !== result.id));
+      }
+      setDeleteError('');
+      loadNextVehicleId()
+        .then(setNextVehicleId)
+        .catch(() => setLoadError('The car was deleted, but the next car ID could not be loaded.'));
+    } catch (error) {
+      setDeleteError(error.message || `Car ${vehicle.id} could not be deleted. Please try again.`);
+    }
+  };
+
   return (
-    <div>
-      <nav
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: '#F4EFC7',
-          fontSize: '29px',
-          fontWeight: 'bold',
-          fontFamily: 'Poppins, sans-serif',
-          backgroundColor: '#1321bef4',
-          padding: '19px',
-          borderRadius: '5px',
-          marginTop: '4px',
-          boxShadow: '0 4px 8px #0c0965f4',
-        }}
-      >
-        <b>🛠️ WELCOME TO SMART OBD SMART LIBRARY SCANNER⚙️</b>
-      </nav>
+    <div className="app-page">
+      <BrandHeader />
+      <div className="workspace-layout">
+        <MechanicSidebar />
+        <main className="workspace-main">
+          <div className="page-heading">
+            <p className="eyebrow"><span className="eyebrow-line" /> YOUR WORKSPACE</p>
+            <h1>Available cars</h1>
+            {isAddFormOpen && <p className="page-description">Add a vehicle to your workshop.</p>}
+            <a
+              className="obd-code-button"
+              href="https://mdshazeb9963-code.github.io/obd-ai-diagnostic-center/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span aria-hidden="true">⌘</span>
+              OBD Code
+              <span className="obd-code-external" aria-hidden="true">↗</span>
+            </a>
+          </div>
 
-      <h2 align="center">Welcome Mechanic</h2>
-      <p align="center">Manage your cars from the menu</p>
-      <br />
+          {loadError && <p className="form-message" role="alert">{loadError}</p>}
+          {statusError && <p className="form-message" role="alert">{statusError}</p>}
 
-      <div
-        style={{
-          backgroundColor: 'rgba(242, 246, 249, 0.92)',
-          padding: '75px',
-          borderRadius: '12px',
-          boxShadow: '0 8px 16px #205f7e',
-          width: '350px',
-          margin: '0 auto',
-          textAlign: 'center',
-        }}
-      >
-        <h3 style={{ color: '#205f7e', fontSize: '24px' }}>
-          Smart OBD Library Scanner
-        </h3>
-        <p>Choose an option from the menu to continue.</p>
+          {isAddFormOpen && (
+            <section className="add-vehicle-panel" aria-labelledby="add-vehicle-heading">
+              <div className="add-vehicle-panel-heading">
+                <div>
+                  <p className="section-kicker">WORKSHOP INVENTORY</p>
+                  <h2 id="add-vehicle-heading">Add a new car</h2>
+                  <p className="page-description">New customer access ID: <strong>{nextVehicleId || 'Loading...'}</strong></p>
+                </div>
+                <button className="close-panel-button" type="button" onClick={closeAddForm} aria-label="Close add vehicle form">×</button>
+              </div>
+              <form className="add-vehicle-form" onSubmit={handleAddVehicle}>
+                <label>
+                  Car ID
+                  <input value={nextVehicleId} readOnly aria-describedby="car-id-help" />
+                </label>
+                <label>
+                  Customer name <span className="optional-field">(Optional)</span>
+                  <input name="customerName" autoComplete="name" placeholder="e.g. Alex Morgan" />
+                </label>
+                <label>
+                  Customer phone number (customer password)
+                  <input name="phone" type="tel" autoComplete="tel" placeholder="e.g. +1 555 010 1234" minLength="7" maxLength="20" required />
+                </label>
+                <p id="car-id-help" className="obd-scan-help">Customers use this car ID and their phone number to access this vehicle.</p>
+                <label>
+                  Car number plate
+                  <input name="license" placeholder="e.g. ABC-123" required />
+                </label>
+                <label>
+                  Amount
+                  <input name="amount" type="number" min="0" step="0.01" placeholder="e.g. 250.00" />
+                </label>
+                <div className="vehicle-photo-field">
+                  <span className="vehicle-photo-label">Vehicle photo <span>Optional</span></span>
+                  <div className="vehicle-photo-controls">
+                    <input ref={uploadInputRef} className="sr-only" type="file" accept="image/*" onChange={handlePhotoChange} aria-label="Choose a vehicle photo" />
+                    <input ref={cameraInputRef} className="sr-only" type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} aria-label="Take a vehicle photo" />
+                    <button type="button" className="photo-choice-button" onClick={() => uploadInputRef.current?.click()}>
+                      <span aria-hidden="true">▧</span> Choose image
+                    </button>
+                    <button type="button" className="photo-choice-button" onClick={() => cameraInputRef.current?.click()}>
+                      <span aria-hidden="true">◎</span> Use camera
+                    </button>
+                  </div>
+                  {photo && (
+                    <div className="vehicle-photo-preview">
+                      <img src={photo} alt="Selected vehicle preview" />
+                      <button type="button" onClick={() => setPhoto('')}>Remove photo</button>
+                    </div>
+                  )}
+                  {photoError && <p className="photo-error" role="alert">{photoError}</p>}
+                </div>
+                <div className="vehicle-photo-field">
+                  <span className="vehicle-photo-label">OBD diagnostics</span>
+                  <div className="vehicle-photo-controls">
+                    <a
+                      className="photo-choice-button"
+                      href="https://mdshazeb9963-code.github.io/obd-ai-diagnostic-center/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span aria-hidden="true">▣</span> OBD Code
+                    </a>
+                  </div>
+                </div>
+                {saveError && <p className="photo-error save-error" role="alert">{saveError}</p>}
+                <button className="primary-button add-vehicle-submit" type="submit" disabled={!nextVehicleId}>
+                  Add car <span aria-hidden="true">→</span>
+                </button>
+              </form>
+            </section>
+          )}
+
+          {deleteError && <p className="form-message" role="alert">{deleteError}</p>}
+          <section className="mechanic-vehicles" aria-labelledby="available-cars-heading">
+            <div className="vehicle-list-heading">
+              <div>
+                <h2 id="available-cars-heading">Available cars</h2>
+                <span>{vehicles.length} vehicles</span>
+              </div>
+              <Link to="/cars" className="vehicle-library-link">Open vehicle library <span aria-hidden="true">→</span></Link>
+            </div>
+
+            <div className="vehicle-list">
+              {vehicles.map((car) => (
+                <article className="vehicle-row" key={car.id}>
+                  <span className="vehicle-id">{car.id}</span>
+                  <VehiclePhoto vehicle={car} className="vehicle-thumbnail" onPhotoChange={setVehicles} />
+                  <div className="vehicle-details">
+                    <h3>{car.name} <span>·</span> {car.year} <span>·</span> {car.license}</h3>
+                    {car.customerName && <p>Customer: {car.customerName}</p>}
+                    {car.phone && <p>Phone: {car.phone}</p>}
+                    <p>Odometer: {car.odometer} <span>·</span> Fuel: {car.fuel}</p>
+                    {car.scanReport?.codes?.length > 0 && (
+                      <div className="vehicle-scan-summary">
+                        <strong>OBD scan: {car.scanReport.codes.map(({ code }) => code).join(', ')}</strong>
+                        <ul>
+                          {car.scanReport.codes.map(({ code, description }) => (
+                            <li key={code}><code>{code}</code> {description}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  <label className="vehicle-status-control">
+                    <span className="sr-only">Work status for {car.name}</span>
+                    <select
+                      className={`vehicle-status vehicle-status-${String(car.status).toLowerCase().replace(/\s+/g, '-')}`}
+                      value={car.status}
+                      onChange={(event) => handleStatusChange(car, event.target.value)}
+                    >
+                      <option value="Available">Available</option>
+                      <option value="Work pending">Work pending</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  </label>
+                  <div className="vehicle-row-actions">
+                    <Link to={`/cars/${car.id}`} className="vehicle-row-action">View <span aria-hidden="true">↗</span></Link>
+                    <button
+                      type="button"
+                      className="vehicle-row-delete"
+                      aria-label={`Delete ${car.name}, car ID ${car.id}`}
+                      onClick={() => handleDeleteVehicle(car)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        </main>
       </div>
-
-      <sidebar
-        style={{
-          position: 'fixed',
-          top: '86px',
-          left: '0',
-          height: '100%',
-          width: '125px',
-          backgroundColor: '#f7f9fb',
-          color: '#191819',
-          padding: '20px',
-          boxShadow: '2px 0 5px #09a7c780',
-          fontFamily: 'Bebas Neue, sans-serif',
-        }}
-      >
-        <h2><i><u>MENU</u></i></h2>
-        <ul style={{ listStyleType: 'none', padding: '0' }}>
-          <li style={{ marginBottom: '10px' }}>
-            <a
-              href="/cars"
-              style={{
-                display: 'inline-block',
-                padding: '8px 12px',
-                width: '125px',
-                boxSizing: 'border-box',
-                color: '#fff',
-                backgroundColor: '#6c757d',
-                border: '1px solid #6c757d',
-                borderRadius: '0.375rem',
-                textDecoration: 'none',
-                fontFamily: 'Arial, sans-serif',
-              }}
-            >
-              Cars
-            </a>
-          </li>
-          <li style={{ marginBottom: '10px' }}>
-            <a
-              href="/add-car"
-              style={{
-                display: 'inline-block',
-                padding: '8px 12px',
-                width: '125px',
-                boxSizing: 'border-box',
-                color: '#fff',
-                backgroundColor: '#6c757d',
-                border: '1px solid #6c757d',
-                borderRadius: '0.375rem',
-                textDecoration: 'none',
-                fontFamily: 'Arial, sans-serif',
-              }}
-            >
-              Add a New Car
-            </a>
-          </li>
-          <li>
-            <a
-              href="/history"
-              style={{
-                display: 'inline-block',
-                padding: '8px 12px',
-                width: '125px',
-                boxSizing: 'border-box',
-                color: '#fff',
-                backgroundColor: '#6c757d',
-                border: '1px solid #6c757d',
-                borderRadius: '0.375rem',
-                textDecoration: 'none',
-                fontFamily: 'Arial, sans-serif',
-              }}
-            >
-              History
-            </a>
-          </li>
-        </ul>
-      </sidebar>
-
-      <footer style={{ textAlign: 'center', marginTop: '70px', fontFamily: 'Arial Narrow, sans-serif' }}>
-        <p style={{ margin: '4px 0', fontWeight: 'bold' }}>
-          <u>WELCOME MECHANIC</u>
-        </p>
-      </footer>
     </div>
   );
 }

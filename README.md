@@ -2,6 +2,47 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## GitHub Pages
+
+The app is hosted at https://mdshazeb9963-code.github.io/Smart-OBD-library/. Changes pushed to `main` are built and deployed by `.github/workflows/deploy.yml`.
+
+GitHub Pages hosts the static frontend only. The deployed app uses browser storage; the optional Express/MySQL API in `server/` must be hosted separately before configuring `REACT_APP_API_URL`.
+
+## MySQL-backed local development
+
+The app can use a local MySQL database through the API in `server/`. Browser code never opens a JDBC connection directly. Browser storage remains the default unless `REACT_APP_API_URL` is set.
+
+1. Create the database tables and sample vehicles:
+
+   ```powershell
+   Get-Content server\schema.sql | mysql -u your_mysql_username -p
+   ```
+
+   If you already have the database, run the one-time migration for vehicle amounts and customer feedback:
+
+   ```powershell
+   Get-Content server\migrations\001-vehicle-amount-feedback.sql | mysql -u your_mysql_username -p
+   ```
+
+2. Copy `server\.env.example` to `server\.env` and set your MySQL username and password. The example URL targets `jdbc:mysql://localhost:3306/obd`.
+
+   ```powershell
+   Copy-Item server\.env.example server\.env
+   ```
+
+3. Start the API and React app in separate PowerShell terminals:
+
+   ```powershell
+   npm run server
+   ```
+
+   ```powershell
+   $env:REACT_APP_API_URL = "/api"
+   npm start
+   ```
+
+The React development server proxies `/api` requests to the local API. The API listens only on `127.0.0.1`; do not expose it to a network or deploy it publicly without adding mechanic authentication and production security controls.
+
 ## Available Scripts
 
 In the project directory, you can run:
