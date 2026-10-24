@@ -9,7 +9,7 @@ import History from "./component/history";
 import About from "./component/about";
 import Feedback from "./component/feedback";
 import { ThemeContext } from './component/layout';
-import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 function BackButton() {
   const navigate = useNavigate();
@@ -56,7 +56,11 @@ function BackButton() {
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const routerBasename = process.env.PUBLIC_URL.replace(/^https?:\/\/[^/]+/, '');
+  const isProduction = process.env.NODE_ENV === 'production';
+  const Router = isProduction ? HashRouter : BrowserRouter;
+  const routerBasename = isProduction
+    ? undefined
+    : process.env.PUBLIC_URL.replace(/^https?:\/\/[^/]+/, '');
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark-theme', darkMode);
@@ -64,7 +68,7 @@ function App() {
 
   return (
     <ThemeContext.Provider value={{ darkMode, toggleTheme: () => setDarkMode((current) => !current) }}>
-      <BrowserRouter basename={routerBasename}>
+      <Router basename={routerBasename}>
         <BackButton />
         <Routes>
           <Route path="/" element={<User />} />
@@ -77,7 +81,7 @@ function App() {
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/customer" element={<Customer />} />
         </Routes>
-      </BrowserRouter>
+      </Router>
     </ThemeContext.Provider>
   );
 }
