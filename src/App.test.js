@@ -69,10 +69,15 @@ test('customer sign-in opens a mechanic-style vehicle workspace', async () => {
   expect(screen.getByText('Sam Customer')).toBeInTheDocument();
   expect(screen.getByRole('img', { name: 'Customer test car' })).toHaveAttribute('src', 'data:image/png;base64,dGVzdA==');
 
+  const customerMenu = screen.getByRole('button', { name: /^menu$/i });
+  fireEvent.click(customerMenu);
+  expect(customerMenu).toHaveAttribute('aria-expanded', 'true');
   fireEvent.click(screen.getByRole('button', { name: /^about$/i }));
+  expect(screen.getByRole('button', { name: /menu/i })).toHaveAttribute('aria-expanded', 'false');
   expect(screen.getByRole('heading', { name: /about the mechanic/i })).toBeInTheDocument();
   expect(await screen.findByText('Workshop profile for customers.')).toBeInTheDocument();
 
+  fireEvent.click(screen.getByRole('button', { name: /^menu$/i }));
   fireEvent.click(screen.getByRole('button', { name: /my vehicle/i }));
   expect(screen.getByRole('heading', { name: 'Your vehicle' })).toBeInTheDocument();
 
@@ -100,6 +105,9 @@ test('shows available cars, opens Add New from the sidebar, and opens History', 
   fireEvent.click(screen.getByRole('button', { name: /enter workspace/i }));
 
   expect(screen.getByRole('heading', { name: 'Available cars', level: 1 })).toBeInTheDocument();
+  const mechanicMenu = screen.getByRole('button', { name: /^menu$/i });
+  fireEvent.click(mechanicMenu);
+  expect(mechanicMenu).toHaveAttribute('aria-expanded', 'true');
   expect(
     screen.getAllByRole('link', { name: /obd code/i }).some(
       (link) => link.getAttribute('href') === 'https://mdshazeb9963-code.github.io/obd-ai-diagnostic-center/'

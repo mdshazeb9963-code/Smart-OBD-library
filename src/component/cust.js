@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BrandHeader } from './layout';
+import { BrandHeader, SidebarMenu } from './layout';
 import { lookupCustomerVehicle, submitCustomerFeedback } from './car';
 import { loadWorkshopAboutText } from './about';
 import { usesDatabaseApi } from './api';
@@ -71,46 +71,47 @@ function Customer() {
       <BrandHeader />
       {vehicle ? (
         <div className="workspace-layout customer-workspace">
-          <aside className="sidebar">
-            <p className="sidebar-label">CUSTOMER PORTAL</p>
-            <nav className="sidebar-nav" aria-label="Customer navigation">
-              <button
-                className={`sidebar-link sidebar-action${activeSection === 'vehicle' ? ' active' : ''}`}
-                type="button"
-                aria-current={activeSection === 'vehicle' ? 'page' : undefined}
-                onClick={() => setActiveSection('vehicle')}
-              >
-                <span className="nav-icon" aria-hidden="true">▣</span>
-                My vehicle
-              </button>
-              <button
-                className={`sidebar-link sidebar-action${activeSection === 'about' ? ' active' : ''}`}
-                type="button"
-                aria-current={activeSection === 'about' ? 'page' : undefined}
-                onClick={showAbout}
-              >
-                <span className="nav-icon" aria-hidden="true">✎</span>
-                About
-              </button>
-              <button
-                className={`sidebar-link sidebar-action${activeSection === 'feedback' ? ' active' : ''}`}
-                type="button"
-                aria-current={activeSection === 'feedback' ? 'page' : undefined}
-                onClick={() => {
-                  setActiveSection('feedback');
-                  setFeedbackError('');
-                  setFeedbackSuccess('');
-                }}
-              >
-                <span className="nav-icon" aria-hidden="true">✉</span>
-                Contact mechanic
-              </button>
-              <button className="sidebar-link sidebar-action" type="button" onClick={signOut}>
-                <span className="nav-icon" aria-hidden="true">↪</span>
-                Sign out
-              </button>
-            </nav>
-          </aside>
+          <SidebarMenu
+            label="CUSTOMER PORTAL"
+            navigationLabel="Customer navigation"
+            navigationId="customer-sidebar-navigation"
+          >
+            <button
+              className={`sidebar-link sidebar-action${activeSection === 'vehicle' ? ' active' : ''}`}
+              type="button"
+              aria-current={activeSection === 'vehicle' ? 'page' : undefined}
+              onClick={() => setActiveSection('vehicle')}
+            >
+              <span className="nav-icon" aria-hidden="true">▣</span>
+              My vehicle
+            </button>
+            <button
+              className={`sidebar-link sidebar-action${activeSection === 'about' ? ' active' : ''}`}
+              type="button"
+              aria-current={activeSection === 'about' ? 'page' : undefined}
+              onClick={showAbout}
+            >
+              <span className="nav-icon" aria-hidden="true">✎</span>
+              About
+            </button>
+            <button
+              className={`sidebar-link sidebar-action${activeSection === 'feedback' ? ' active' : ''}`}
+              type="button"
+              aria-current={activeSection === 'feedback' ? 'page' : undefined}
+              onClick={() => {
+                setActiveSection('feedback');
+                setFeedbackError('');
+                setFeedbackSuccess('');
+              }}
+            >
+              <span className="nav-icon" aria-hidden="true">✉</span>
+              Contact mechanic
+            </button>
+            <button className="sidebar-link sidebar-action" type="button" onClick={signOut}>
+              <span className="nav-icon" aria-hidden="true">↪</span>
+              Sign out
+            </button>
+          </SidebarMenu>
           <main className="workspace-main">
             <div className="page-heading">
               <p className="eyebrow"><span className="eyebrow-line" /> {activeSection === 'vehicle' ? 'CUSTOMER PORTAL' : activeSection === 'about' ? 'WORKSHOP INFORMATION' : 'CUSTOMER SUPPORT'}</p>

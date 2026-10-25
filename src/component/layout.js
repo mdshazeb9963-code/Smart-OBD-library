@@ -42,32 +42,65 @@ export function BrandHeader({ landing = false }) {
   );
 }
 
-export function MechanicSidebar() {
+export function SidebarMenu({ label, navigationLabel, navigationId, children }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+
   return (
-    <aside className="sidebar">
-      <p className="sidebar-label">WORKSPACE</p>
-      <nav className="sidebar-nav" aria-label="Mechanic navigation">
-        <NavLink to="/home" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-          <span className="nav-icon" aria-hidden="true">⌂</span>
-          Home
-        </NavLink>
-        <NavLink to="/home?add=new" className={({ isActive }) => `sidebar-link sidebar-action${isActive ? ' active' : ''}`}>
-          <span className="nav-icon" aria-hidden="true">＋</span>
-          Add New
-        </NavLink>
-        <NavLink to="/history" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-          <span className="nav-icon" aria-hidden="true">▤</span>
-          History
-        </NavLink>
-        <NavLink to="/about" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-          <span className="nav-icon" aria-hidden="true">✎</span>
-          About
-        </NavLink>
-        <NavLink to="/feedback" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-          <span className="nav-icon" aria-hidden="true">✉</span>
-          Customer feedback
-        </NavLink>
+    <aside className={`sidebar${isOpen ? ' menu-open' : ''}`}>
+      <p className="sidebar-label">{label}</p>
+      <button
+        className="sidebar-menu-toggle"
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls={navigationId}
+        onClick={() => setIsOpen((open) => !open)}
+      >
+        <span className="sidebar-menu-icon" aria-hidden="true">{isOpen ? '×' : '☰'}</span>
+        {isOpen ? 'Close menu' : 'Menu'}
+      </button>
+      <nav
+        id={navigationId}
+        className="sidebar-nav"
+        aria-label={navigationLabel}
+        onClick={(event) => {
+          if (event.target.closest('a, button')) {
+            setIsOpen(false);
+          }
+        }}
+      >
+        {children}
       </nav>
     </aside>
+  );
+}
+
+export function MechanicSidebar() {
+  return (
+    <SidebarMenu
+      label="WORKSPACE"
+      navigationLabel="Mechanic navigation"
+      navigationId="mechanic-sidebar-navigation"
+    >
+      <NavLink to="/home" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
+        <span className="nav-icon" aria-hidden="true">⌂</span>
+        Home
+      </NavLink>
+      <NavLink to="/home?add=new" className={({ isActive }) => `sidebar-link sidebar-action${isActive ? ' active' : ''}`}>
+        <span className="nav-icon" aria-hidden="true">＋</span>
+        Add New
+      </NavLink>
+      <NavLink to="/history" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
+        <span className="nav-icon" aria-hidden="true">▤</span>
+        History
+      </NavLink>
+      <NavLink to="/about" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
+        <span className="nav-icon" aria-hidden="true">✎</span>
+        About
+      </NavLink>
+      <NavLink to="/feedback" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
+        <span className="nav-icon" aria-hidden="true">✉</span>
+        Customer feedback
+      </NavLink>
+    </SidebarMenu>
   );
 }
