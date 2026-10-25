@@ -898,7 +898,7 @@
   font-weight: 450;
 }
 
-.add-vehicle-form input {
+.add-vehicle-form input:not(.sr-only) {
   width: 100%;
   height: 40px;
   box-sizing: border-box;
