@@ -118,6 +118,7 @@ test('shows available cars, opens Add New from the sidebar, and opens History', 
   expect(screen.queryByRole('link', { name: /add a new car/i })).not.toBeInTheDocument();
 
   fireEvent.click(screen.getByRole('link', { name: /add new/i }));
+  expect(screen.getByRole('button', { name: /^menu$/i })).toHaveAttribute('aria-expanded', 'false');
   expect(screen.getByRole('heading', { name: 'Available cars', level: 1 })).toBeInTheDocument();
   expect(screen.getByRole('heading', { name: /add a new car/i })).toBeInTheDocument();
   expect(screen.getByLabelText('Car ID')).toBeInTheDocument();
