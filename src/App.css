@@ -1855,6 +1855,23 @@ a.dashboard-card:hover {
   .vehicle-row-action { grid-column: 4; }
 }
 
+@media (min-width: 681px) and (max-width: 850px) {
+  .app-header {
+    min-height: auto;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    padding: 9px 25px 10px 105px;
+  }
+  .nav-headline {
+    order: 3;
+    width: 100%;
+    margin: 3px 0 0;
+    font-size: 14px;
+  }
+  .header-actions { gap: 0; }
+  .header-status { display: none; }
+}
+
 @media (max-width: 680px) {
   .app-header {
     min-height: 98px;
